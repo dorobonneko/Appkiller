@@ -26,6 +26,7 @@ public class Killer implements Thread.UncaughtExceptionHandler,Runnable{
         whitelist.add("com.android.packageinstaller");
         whitelist.add("com.google.android.gms");
         whitelist.add("com.android.permissioncontroller");
+        whitelist.add("com.android.webview");
     }
     public static void main(String[] args){
         if(android.os.Process.myUid()>2000){
@@ -106,7 +107,7 @@ public class Killer implements Thread.UncaughtExceptionHandler,Runnable{
                         appprocess.add(line);
                         break;
                case 1:
-                   if("whilelist".equals(line)){
+                   if("whitelist".equals(line)){
                        mode=2;
                        break;
                    }
