@@ -27,6 +27,10 @@ public class Killer implements Thread.UncaughtExceptionHandler,Runnable{
         whitelist.add("com.google.android.gms");
         whitelist.add("com.android.permissioncontroller");
         whitelist.add("com.android.webview");
+        whitelist.add("com.android.phone");
+        whitelist.add("com.android.networkstack");
+        whitelist.add("com.android.nfc");
+        whitelist.add("com.android.keychain");
     }
     public static void main(String[] args){
         if(android.os.Process.myUid()>2000){
@@ -87,9 +91,15 @@ public class Killer implements Thread.UncaughtExceptionHandler,Runnable{
             pw.println("a=$(dumpsys activity p|grep \"^ *UID\"|tail -n +2)");
             pw.println("echo \"${a%%UID validation:*}\"|awk '{print $4}'|grep ^u0a|awk '{system(\"pm list packages -U|grep uid:\"substr($0,4)+10000)}'|awk -F '[ :]+' '{print $2}'");
             pw.println("echo //");
+            //最近任务
             pw.println("echo \"$(dumpsys activity r|grep Activities|grep -v \"\\[\\]\"|awk -F '[ /]+' '{print $4}')\"");
             pw.println("echo whitelist");
+            //电池优化白名单
             pw.println("cmd deviceidle whitelist|awk -F '[ ,]+' '{print $2}'");
+            //通知
+            pw.println("dumpsys notification|grep opPkg=|awk -F '=' '{print $2}'");
+            //输入法
+            pw.println("dumpsys input_method|grep mEnabledInputMethodsStrCache|awk -F '=' '{len=split($2,item,\":\");for(i=1;i<=len;i++){print item[i];}}'|cut -d / -f 1");
             pw.println("echo end");
             pw.println("dumpsys deviceidle step deep");
             pw.flush();
