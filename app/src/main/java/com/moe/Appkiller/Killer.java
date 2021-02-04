@@ -31,6 +31,12 @@ public class Killer implements Thread.UncaughtExceptionHandler,Runnable{
         whitelist.add("com.android.networkstack");
         whitelist.add("com.android.nfc");
         whitelist.add("com.android.keychain");
+        whitelist.add("android.ext.services");
+        whitelist.add("com.android.providers.media");
+        whitelist.add("com.android.providers.downloads.ui");
+        whitelist.add("com.android.mtp");
+        whitelist.add("com.android.externalstorage");
+        whitelist.add("com.android.traceur");
     }
     public static void main(String[] args){
         if(android.os.Process.myUid()>2000){
@@ -92,7 +98,8 @@ public class Killer implements Thread.UncaughtExceptionHandler,Runnable{
             pw.println("echo \"${a%%UID validation:*}\"|awk '{print $4}'|grep ^u0a|awk '{system(\"pm list packages -U|grep uid:\"substr($0,4)+10000)}'|awk -F '[ :]+' '{print $2}'");
             pw.println("echo //");
             //最近任务
-            pw.println("echo \"$(dumpsys activity r|grep Activities|grep -v \"\\[\\]\"|awk -F '[ /]+' '{print $4}')\"");
+            pw.println("dumpsys activity r|grep Activities|grep -v \"\\[\\]\"|awk '{len=split($0,item,\",\");for(i=1;i<=len;i++){print item[i];}}'|awk -F '[ /]+' '{print $4}'");
+            //pw.println("echo \"$(dumpsys activity r|grep Activities|grep -v \"\\[\\]\"|awk -F '[ /]+' '{print $4}')\"");
             pw.println("echo whitelist");
             //电池优化白名单
             pw.println("cmd deviceidle whitelist|awk -F '[ ,]+' '{print $2}'");
