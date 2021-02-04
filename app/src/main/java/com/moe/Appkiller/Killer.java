@@ -37,6 +37,8 @@ public class Killer implements Thread.UncaughtExceptionHandler,Runnable{
         whitelist.add("com.android.mtp");
         whitelist.add("com.android.externalstorage");
         whitelist.add("com.android.traceur");
+        whitelist.add("android.process.media");
+        whitelist.add("com.qualcomm.telephony");
     }
     public static void main(String[] args){
         if(android.os.Process.myUid()>2000){
@@ -51,6 +53,17 @@ public class Killer implements Thread.UncaughtExceptionHandler,Runnable{
             ScheduledExecutorService pool=Executors.newSingleThreadScheduledExecutor();
             pool.scheduleAtFixedRate(killer,0,60,TimeUnit.SECONDS);
             try {
+               /* try {
+                    Process p=Runtime.getRuntime().exec("sh");
+                    PrintWriter pw=new PrintWriter(p.getOutputStream());
+                    pw.println("kill -9 $(netstat -lp|grep 43281|awk -F '[ /]+' '{print $7}')");
+                    pw.flush();
+                    try {
+                        p.waitFor(10,TimeUnit.MILLISECONDS);
+                    } catch (InterruptedException ee) {}
+                    p.destroy();
+
+                } catch (IOException ee) {}*/
                 final ServerSocket ss=new ServerSocket();
                 ss.bind(new InetSocketAddress(43281));
                 new Thread(){
@@ -64,7 +77,9 @@ public class Killer implements Thread.UncaughtExceptionHandler,Runnable{
                 }.start();
                 System.out.println("正在运行");
             } catch (IOException e) {
-                System.out.println("43281端口占用");
+                System.out.println("43281端口占用\n启动停止");
+                pool.shutdown();
+                System.exit(2);
             }
             
             Looper.loop();
@@ -89,16 +104,20 @@ public class Killer implements Thread.UncaughtExceptionHandler,Runnable{
 
     @Override
     public void run() {
+        long time=System.currentTimeMillis();
         ArrayList<String> appprocess=new ArrayList<>();
         try {
             Process p=Runtime.getRuntime().exec("sh");
             PrintWriter pw=new PrintWriter(p.getOutputStream());
             BufferedReader br=new BufferedReader(new InputStreamReader(p.getInputStream()));
-            pw.println("a=$(dumpsys activity p|grep \"^ *UID\"|tail -n +2)");
-            pw.println("echo \"${a%%UID validation:*}\"|awk '{print $4}'|grep ^u0a|awk '{system(\"pm list packages -U|grep uid:\"substr($0,4)+10000)}'|awk -F '[ :]+' '{print $2}'");
+            //pw.println("a=$(dumpsys activity p|grep \"^ *UID\"|tail -n +2)");
+            //pw.println("echo \"${a%%UID validation:*}\"|awk '{print $4}'|grep ^u0a|awk '{system(\"pm list packages -U|grep uid:\"substr($0,4)+10000)}'|awk -F '[ :]+' '{print $2}'");
+            //pw.println("dumpsys activity p|grep \"^ *PID #\"|awk -F '[ /:}]+' '{print $7\" \"$6;}'|grep ^u|grep -v ^ui|cut -d  \" \" -f 2");
+            pw.println("dumpsys activity p|grep \"^ *PID #\"|awk -F '[ /}]+' '{print $6\" \"$5;}'|grep ^u|awk -F '[ :]+' '{!visited[$3]++;if(visited[$3]==1)print $3;}'");
             pw.println("echo //");
             //最近任务
-            pw.println("dumpsys activity r|grep Activities|grep -v \"\\[\\]\"|awk '{len=split($0,item,\",\");for(i=1;i<=len;i++){print item[i];}}'|awk -F '[ /]+' '{print $4}'");
+            pw.println("dumpsys activity r|grep Activities|grep -v \"\\[\\]\"|awk '{len=split($0,item,\",\");for(i=1;i<=len;i++){print item[i];}}'|awk -F '[ /]+' '{!visited[$4]++;if(visited[$4]==1)print $4;}'");
+            //pw.println("dumpsys activity r|grep Activities|grep -v \"\\[\\]\"|awk '{len=split($0,item,\",\");for(i=1;i<=len;i++){print item[i];}}'|awk -F '[ /]+' '{print $4}'");
             //pw.println("echo \"$(dumpsys activity r|grep Activities|grep -v \"\\[\\]\"|awk -F '[ /]+' '{print $4}')\"");
             pw.println("echo whitelist");
             //电池优化白名单
@@ -152,6 +171,7 @@ public class Killer implements Thread.UncaughtExceptionHandler,Runnable{
             } catch (InterruptedException e) {}
             p.destroy();
         } catch (IOException e) {}
+        System.out.println("耗时 "+(System.currentTimeMillis()-time));
     }
 
 
