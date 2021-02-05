@@ -16,6 +16,7 @@ import java.net.InetSocketAddress;
 
 public class MainActivity extends Activity implements ToggleButton.OnCheckedChangeListener { 
      private ToggleButton status;
+     private Thread check;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitAll().build());
@@ -25,14 +26,40 @@ public class MainActivity extends Activity implements ToggleButton.OnCheckedChan
         checkStatus();
     }
     private void checkStatus(){
-        Socket s=new Socket();
+        if(check!=null)return;
+        final Socket s=new Socket();
         
         try {
             s.connect(new InetSocketAddress(43281));
             status.setOnCheckedChangeListener(null);
             status.setChecked(s.isConnected());
             status.setOnCheckedChangeListener(this);
-            s.close();
+            if(s.isConnected()){
+                (check=new Thread(){
+                    public void run(){
+                        try {
+                            s.getInputStream().read();
+                            runOnUiThread(new Runnable(){
+
+                                    @Override
+                                    public void run() {
+                                        status.setOnCheckedChangeListener(null);
+                                        status.setChecked(false);
+                                        status.setOnCheckedChangeListener(MainActivity.this);
+                                        check=null;
+                                    }
+                                });
+                        } catch (IOException e) {
+                            try {
+                                s.close();
+                            } catch (IOException ee) {}
+                        }
+                        
+                    }
+                }).start();
+            }else{
+                s.close();
+            }
         } catch (Exception e) {
             status.setOnCheckedChangeListener(null);
             status.setChecked(false);
@@ -40,16 +67,30 @@ public class MainActivity extends Activity implements ToggleButton.OnCheckedChan
         }
     }
     @Override
-    public void onCheckedChanged(CompoundButton p1, boolean p2) {
+    public void onCheckedChanged(final CompoundButton p1, boolean p2) {
+        p1.setEnabled(false);
         if(p2){
             new Thread(){
                 public void run(){
                     try {
                         Process p=Runtime.getRuntime().exec("su");
                         PrintWriter pw=new PrintWriter(p.getOutputStream());
-                        pw.println("app_process -Djava.class.path=/data/data/com.moe.Appkiller/files/killer  /data/local/tmp com.moe.Appkiller.Killer > /data/data/com.moe.Appkiller/files/log");
+                        pw.println("app_process -Djava.class.path=/data/data/com.moe.Appkiller/files/killer  /data/local/tmp com.moe.Appkiller.Killer > /data/data/com.moe.Appkiller/files/log&");
+                        pw.println("sleep 1s");
+                        pw.println("exit");
                         pw.flush();
-                        
+                        try {
+                            p.waitFor();
+                        } catch (InterruptedException e) {}
+                        p.destroy();
+                        runOnUiThread(new Runnable(){
+
+                                @Override
+                                public void run() {
+                                    checkStatus();
+                                    p1.setEnabled(true);
+                                }
+                            });
                     } catch (IOException e) {}
                 }
             }.start();
@@ -61,12 +102,21 @@ public class MainActivity extends Activity implements ToggleButton.OnCheckedChan
                         PrintWriter pw=new PrintWriter(p.getOutputStream());
                         pw.println("kill -9 $(netstat -lp|grep 43281|grep LISTEN|awk -F '[ /]+' '{print $7}')");
                         pw.println("kill -9 $(cat /data/data/com.moe.Appkiller/files/pid)");
+                        pw.println("exit");
                         pw.flush();
                         try {
                             p.waitFor();
                         } catch (InterruptedException e) {}
                         pw.close();
                         p.destroy();
+                        runOnUiThread(new Runnable(){
+
+                                @Override
+                                public void run() {
+                                    checkStatus();
+                                    p1.setEnabled(true);
+                                }
+                            });
                     } catch (IOException e) {}
                 }
             }.start();
