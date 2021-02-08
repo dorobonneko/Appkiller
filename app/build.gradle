@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 21
-    buildToolsVersion "21.1.0"
-
+    compileSdkVersion 20
+    buildToolsVersion "20.0.3"
+    
     defaultConfig {
         applicationId "com.moe.Appkiller"
-        minSdkVersion 14
+        minSdkVersion 13
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
@@ -17,8 +17,18 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    compileOptions {//使用JAVA8解析  invokedynamic requires --min-sdk-version >= 26
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
+    
+// required by Shizuku and Sui
+//implementation "rikka.shizuku:api:11.0.1"
+
+// required by Shizuku
+//implementation "rikka.shizuku:provider:11.0.1"
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }

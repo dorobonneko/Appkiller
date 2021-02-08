@@ -39,6 +39,7 @@ public class Killer implements Thread.UncaughtExceptionHandler,Runnable{
         whitelist.add("com.android.traceur");
         whitelist.add("android.process.media");
         whitelist.add("com.qualcomm.telephony");
+        whitelist.add("android.process.acore");
     }
     public static void main(String[] args){
         if(android.os.Process.myUid()>2000){
