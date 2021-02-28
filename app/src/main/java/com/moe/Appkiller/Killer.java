@@ -51,7 +51,7 @@ public class Killer implements Thread.UncaughtExceptionHandler,Runnable{
             Killer killer=new Killer();
             Thread.setDefaultUncaughtExceptionHandler(killer);
             System.out.println("启动线程");
-            ScheduledExecutorService pool=Executors.newSingleThreadScheduledExecutor();
+            ScheduledExecutorService pool=Executors.newScheduledThreadPool(3);
             pool.scheduleAtFixedRate(killer,0,60,TimeUnit.SECONDS);
             try {
                /* try {
@@ -128,7 +128,7 @@ public class Killer implements Thread.UncaughtExceptionHandler,Runnable{
             //输入法
             pw.println("dumpsys input_method|grep mEnabledInputMethodsStrCache|awk -F '=' '{len=split($2,item,\":\");for(i=1;i<=len;i++){print item[i];}}'|cut -d / -f 1");
             pw.println("echo end");
-            pw.println("dumpsys deviceidle step deep");
+            pw.println("dumpsys deviceidle step deep &");
             pw.flush();
             String line=null;
             int mode=0;
@@ -149,7 +149,7 @@ public class Killer implements Thread.UncaughtExceptionHandler,Runnable{
                        break;
                    }
                     appprocess.remove(line);
-                    pw.println("am set-inactive "+line+" true");
+                    pw.println("am set-inactive "+line+" true &");
                     System.out.println("Recent "+line);
                     pw.flush();
                     break;
@@ -161,7 +161,7 @@ public class Killer implements Thread.UncaughtExceptionHandler,Runnable{
             Iterator<String> i=appprocess.iterator();
             while(i.hasNext()){
                 String uid=i.next();
-                pw.println("am force-stop "+uid);
+                pw.println("am force-stop "+uid+" &");
                 System.out.println("kill "+uid);
                 pw.flush();
             }
