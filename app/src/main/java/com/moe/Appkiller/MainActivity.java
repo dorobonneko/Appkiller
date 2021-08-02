@@ -100,7 +100,7 @@ public class MainActivity extends Activity implements ToggleButton.OnCheckedChan
                     try {
                         Process p=Runtime.getRuntime().exec("su");
                         PrintWriter pw=new PrintWriter(p.getOutputStream());
-                        pw.println("kill -9 $(netstat -lp|grep 43281|grep LISTEN|awk -F '[ /]+' '{print $7}')");
+                        //pw.println("kill -9 $(netstat -lp|grep 43281|grep LISTEN|awk -F '[ /]+' '{print $7}')");
                         pw.println("kill -9 $(cat /data/data/com.moe.Appkiller/files/pid)");
                         pw.println("exit");
                         pw.flush();

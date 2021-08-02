@@ -18,6 +18,8 @@ import java.util.concurrent.Executor;
 import java.net.ServerSocket;
 import java.net.InetSocketAddress;
 import java.io.File;
+import java.text.DateFormat;
+import java.util.Date;
 
 public class Killer implements Thread.UncaughtExceptionHandler,Runnable{
     private static ArrayList<String> whitelist=new ArrayList<>();
@@ -173,6 +175,7 @@ public class Killer implements Thread.UncaughtExceptionHandler,Runnable{
             p.destroy();
         } catch (IOException e) {}
         System.out.println("耗时 "+(System.currentTimeMillis()-time));
+        System.out.println(DateFormat.getInstance().format(new Date()));
     }
 
 
